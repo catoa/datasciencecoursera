@@ -1,5 +1,5 @@
-.Rprof.out
+*.out
 .ps2.R.swp
 .Rhistory
-.DS_Store
-.rds
+*/*.DS_Store
+*/*.rds
