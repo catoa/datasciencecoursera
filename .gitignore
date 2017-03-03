@@ -1,5 +1,5 @@
 *.out
 .ps2.R.swp
 .Rhistory
-*/*.DS_Store
+.DS_Store
 */*.rds

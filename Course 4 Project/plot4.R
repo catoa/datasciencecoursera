@@ -1,3 +1,5 @@
+require(ggplot2)
+
 scc <- readRDS("summarySCC_PM25.rds")
 codes <- readRDS("Source_Classification_Code.rds")
 
@@ -6,12 +8,13 @@ codes.coal <- codes[grepl("Combustion", codes$SCC.Level.One) |
 
 scc <- subset(scc, SCC %in% codes.coal)
 
-agg <- aggregate(Emissions ~ year + type, scc, sum)
+agg <- aggregate(Emissions ~ year, scc, sum)
 
 png(filename = "plot4.png", height = 600, width = 800)
 
 p <- qplot(year, Emissions, data = agg) 
-p <- p + aes(color = type) 
 p <- p + geom_smooth()
+print(p)
 
 dev.off()
+
