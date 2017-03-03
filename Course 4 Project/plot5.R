@@ -1,0 +1,1 @@
+vehicleSCC <- codes[grepl("Vehicle", codes$SCC.Level.Two),]
