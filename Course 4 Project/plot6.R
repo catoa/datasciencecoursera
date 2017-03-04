@@ -22,6 +22,8 @@ png(filename = "plot6.png", height = 600, width = 600)
 p <- qplot(year, Emissions, data = agg.data) 
 p <- p + aes(color = fips) 
 p <- p + geom_smooth()
+p <- p + xlab("Year")
+p <- p + ylab("Annual Emissions for Baltimore and Los Angeles")
 print(p)
 
 dev.off()
