@@ -1,0 +1,61 @@
+---
+title: "Simulation of Exponential Distribution"
+author: "Anthony Cato"
+date: "April 4, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(data.table)
+library(ggplot2)
+```
+
+### Overview
+In this project, I am investigating how the exponential distribution compares with the Central Limit Theorem. I will create 1000 simulations to observe this distribution and leverage the base plotting package to view this exponential distribution. 
+
+### Simulation 
+```{r}
+# Default lambda value for investigation will be 0.2
+lambda <- 0.2
+# Number of exponentials used for each simulation
+n <- 40
+# Number of simulations
+B <- 1000
+
+# Setting the seed to make project reproducible
+set.seed(7919)
+
+# Generates 40000 random exponential values
+exponentials <- rexp(n * B, lambda)
+
+# Creates matrix of exponential values
+simulations <- matrix(exponentials, nrow = B)
+
+# Converts matrix to a data.table and computes the mean for each column
+means <- data.table(apply(simulations, 1, mean))
+```
+### Sample Mean versus Theoretical Mean
+```{r}
+theoreticalMean <- 1 / lambda 
+sampleMean <- mean(means$V1)
+
+print(c(theoreticalMean, sampleMean))
+```
+### Sample Variance versus Theoretical Variance
+```{r}
+theoreticalVariance <- (1 / (lambda ^ 2)) / n 
+sampleVariance <- var(means$V1)
+
+print(c(theoreticalVariance, sampleVariance))
+```
+### Distributions
+```{r}
+# Plotting the distribution of the means
+hist(means$V1)
+# Drawing a line at x = sampleMean
+abline(v = sampleMean, col = "green")
+```
+
+### Conclusion
+A cursory look at the exponential distribution reveals that the average values are centered around the mean and resembles the normal distribution.

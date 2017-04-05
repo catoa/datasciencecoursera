@@ -1,0 +1,55 @@
+---
+title: "ToothGrowth Data Analysis"
+author: "Anthony Cato"
+date: "April 5, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(data.table)
+```
+
+### Load the ToothGrowth data 
+```{r}
+data(ToothGrowth)
+tooth <- data.table(ToothGrowth)
+```
+### Summary: ToothGrowth
+The ToothGrowth dataset contains 60 observations of the length of guinea pigs' odontoblasts. Each guinea pig has received one of three dose levels of vitamin C via one of two delivery methods: orange juice or ascorbic acid. In this study, I will examine how the length of odontoblasts vary by delivery method. 
+
+### Average Length of Odontoblasts
+```{r}
+# Average Length by Supplement (Fig. 1)
+suppAvg <- tooth[,.(avg.len = mean(len)),
+                 by = .(supp)]
+suppAvg
+
+# Average Length by Dose Level (Fig. 2)
+doseAvg <- tooth[,.(avg.len = mean(len)),
+                 by = .(dose)]
+doseAvg
+
+# Average/SD Length by Supplement and Dose Level (Fig. 3)
+doseAndSuppAvg <- tooth[,.(avg.len = mean(len), sd.len = sd(len)), 
+               by = .(supp, dose) ]
+doseAndSuppAvg
+```
+
+### Confidence Interval (Fig. 4)
+```{r}
+avgVc <- doseAndSuppAvg[supp == "VC"]$avg.len
+avgOj <- doseAndSuppAvg[supp == "OJ"]$avg.len
+
+test <- t.test(avgVc - avgOj, conf.level = .975)
+test
+```
+
+### Assumptions
+* The guinea pigs sample is representative of the entire guinea pig population
+* The dose level was randomly assigned to the guinea pigs
+* The dose levels were consistent, meaning no pig was given more or less than the amount recorded
+
+
+### Conclusions
+My findings reveal that the delivery method (VC versus OJ) and the dose level (0.5, 1.0, 2.0) affect tooth growth in guinea pigs. On average, the guinea pigs that were given OJ experienced greater tooth growth than those given VC (Fig. 1). Moreover, the subjects that received a dose level of 2.0 had better results than those that were given 0.5 or 1.0. Lastly, in observing the 97.5% confidence interval (Fig. 3) and the means for supplement method and dose level (Fig. 4), I conclude that while OJ at dose level 2.0 appears to be the most efiicacious in increasing tooth length, VC at dose level 2.0 produces comparable results. 
