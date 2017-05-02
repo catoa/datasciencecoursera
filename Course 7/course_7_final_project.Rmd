@@ -1,0 +1,141 @@
+---
+title: "Motor Trend Analysis"
+author: "Anthony Cato"
+date: "April 24, 2017"
+output: 
+    pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Summary
+The goal of this analysis is to answer the following questions: 
+
+1. Is an automatic or manual transmission better for MPG?  
+2. Quantify the MPG difference between automatic and manual transmissions
+
+The data source for this project comes from the **mtcars** dataset which is made available by default in R.
+
+## Data Prep
+
+#### Import data.table
+```{r library}
+library(data.table, quietly = TRUE)
+library(ggplot2, quietly = TRUE)
+```
+
+```{r data_prep}
+data(mtcars)
+mtcars$am <- as.factor(mtcars$am)
+levels(mtcars$am) <- c("Automatic", "Manual")
+mtcars <- as.data.table(mtcars)
+```
+
+## Hypothesis Testing
+
+### Average MPG for each transmission type
+```{r averages}
+avg.trans <- mtcars[, .(avg_mpg = mean(mpg)), by = am]
+names(avg.trans)[1] <- c("trans_typ")
+avg.trans
+```
+In comparing the miles per gallon for automatic and manual transmission cars, we observe that the average manual car in this dataset have better fuel economy than the automatic cars. (see Fig. 1)
+
+## T Test
+```{r t_test}
+test <- t.test(mpg ~ am, data = mtcars)
+```
+Using the ```t.test``` function, we get a p-value of `r test$p.value`, indicating that there is strong evidence to reject the null hypothesis. In other words, a p-value this low suggests that there is a relationship between mpg and transmission type that is worth examining. (see Fig. 2)
+
+## Simple Linear Regression
+```{r simple_linear}
+fit <- lm(mpg ~ am, data = mtcars)
+```
+
+A simple linear regression model (see Fig. 3) shows that while transmission types have significant p-values, they are poor predictors of mpg. This poorness-of-fit is summarized by the adjusted r-squared of ```r round(summary(fit)$adj.r.squared, 4)```. This means that roughly ```r round(summary(fit)$adj.r.squared * 100, 2)```% of the variance in our data can be explained by this model. To get a better look at the relationship, we must include other variables. To this end, I've tested a few multivariate regression models to find the features that when combined serve as a better predictor of a car's fuel economy.
+
+## Multivariate Regression
+```{r fitting, echo = TRUE}
+# Factoring in Transmission and Number of Cylinders
+fit.cyl <- update(fit, mpg ~ am + factor(cyl))
+# Factoring in Transmission, Number of Cylinders, and Weight
+fit.cyl.wt <- update(fit.cyl, mpg ~ am + factor(cyl) + wt)
+# Factoring in Transmission, Number of Cylinders, Weight, and Horsepower
+fit.cyl.wt.hp <- update(fit.cyl.wt, mpg ~ am + factor(cyl) + wt + hp)
+```
+
+### Anova Comparison
+```{r anova, echo=FALSE}
+result.models <- anova(fit, fit.cyl, fit.cyl.wt, fit.cyl.wt.hp)
+p.vals <- result.models$`Pr(>F)`
+model1.r.squared <- summary(fit.cyl)$adj.r.squared
+```
+
+The ```anova``` comparison (see Fig. 4) shows that model 2 shows that much of the fluctuations in mpg can be explained by the transmission and type and number of cylinders as indicated by a r-squared of ```r round(model1.r.squared, 4)```. The p-value, ```r p.vals[2]``` suggests that these two factors are a good starting point for the analysis.
+
+## Adjusted R Square for each model
+```{r r_squared}
+# Formula - mpg ~ am + factor(cyl)
+summary(fit.cyl)$adj.r.squared
+
+# Formula - mpg ~ am + factor(cyl) + wt
+summary(fit.cyl.wt)$adj.r.squared
+
+# Formula - mpg ~ am + factor(cyl) + wt + hp
+summary(fit.cyl.wt.hp)$adj.r.squared
+result <- round(summary(fit.cyl.wt.hp)$adj.r.squared, 4)
+result.pct <- result * 100
+```
+
+## Conclusion
+The third model, which explains how mpg is influenced by transmission type, number of cylinders, weight, and horsepower, yields the highest adjusted r_squared at **`r result`**. This r squared means that more than **`r result.pct`%** of the variance in our data can be explained by this model. Because of this high predictive accuracy, I would choose this model. For supporting plot, see Figure 5. 
+
+## Appendix
+
+### Histogram and Boxplot of Mpgs (Fig. 1)
+```{r hists_and_distribution, echo=FALSE}
+par(mfrow = c(1, 2))
+mpgs <- mtcars$mpg
+
+h <- hist(mpgs,
+          breaks = 10,
+          density = 10,
+          col = "cornflowerblue",
+          xlab = "Miles Per Gallon")
+
+xfit <- seq(min(mpgs), max(mpgs), length=40) 
+yfit <- dnorm(xfit, mean = mean(mpgs), sd = sd(mpgs)) 
+yfit <- yfit * diff(h$mids[1:2]) * length(mpgs) 
+lines(xfit, yfit, col = "tomato", lwd = 2)
+
+boxplot(mpg ~ am,
+        data = mtcars,
+        col = "skyblue4",
+        ylab = "Miles Per Gallon",
+        main = "Mpg by Transmission Type")
+
+```
+
+### T Test (Fig. 2)
+```{r t_test_fig}
+test
+```
+
+### Simple Linear Regression (Fig. 3)
+```{r slr}
+summary(fit)
+```
+
+### Anova Comparison (Fig. 4)
+```{r anova_comp}
+result.models
+```
+
+### Residual Plotting for Best Model (Fig. 5)
+```{r resid, echo=FALSE}
+par(mfrow = c(2,2))
+plot(fit.cyl.wt.hp)
+```
+
