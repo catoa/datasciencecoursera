@@ -2,7 +2,7 @@
 title: "ToothGrowth Data Analysis"
 author: "Anthony Cato"
 date: "April 5, 2017"
-output: html_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
